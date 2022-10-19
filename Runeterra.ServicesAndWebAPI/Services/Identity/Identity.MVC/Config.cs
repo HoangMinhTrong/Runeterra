@@ -1,4 +1,5 @@
-﻿using Duende.IdentityServer.Models;
+﻿using Duende.IdentityServer;
+using Duende.IdentityServer.Models;
 
 namespace Identity.MVC;
 
@@ -28,29 +29,32 @@ public static class Config
                 }
             };
 
-        public static IEnumerable<Client> Clients(IConfiguration config)
+        public static IEnumerable<Client> Clients()
         {
-            var publicClientUrl = config.GetValue("PublicClientUrl", "https://web.cs.local:5000");
-            var internalClientUrl = config.GetValue("InternalClientUrl", "https://localhost:5000");
-            
             return new Client[]
             {
                 // BFF gateway
                 new Client
                 {
-                    ClientId = "gw-api",
+                    ClientId = "web",
                     ClientSecrets = { new Secret("secret".Sha256()) },
-
-                    AllowedGrantTypes = GrantTypes.CodeAndClientCredentials,
-
-                    RedirectUris = { $"{internalClientUrl}/signin-oidc", $"{publicClientUrl}/signin-oidc" },
-
-                    BackChannelLogoutUri = $"{internalClientUrl}/logout",
-
-                    PostLogoutRedirectUris = { $"{internalClientUrl}/signout-callback-oidc", $"{internalClientUrl}/signout-callback-oidc" },
-
+                    
+                    AllowedGrantTypes = GrantTypes.Code,
+                    
+                    // where to redirect to after login
+                    RedirectUris = { "https://localhost:5001/signin-oidc" },
+                    
+                    // where to redirect to after logout
+                    PostLogoutRedirectUris = { "https://localhost:5001/signout-callback-oidc" },
+                    AllowAccessTokensViaBrowser =true,
                     AllowOfflineAccess = true,
-                    AllowedScopes = { "openid", "profile", "sale.all" }
+
+                    AllowedScopes = new List<string>
+                    {
+                        IdentityServerConstants.StandardScopes.OpenId,
+                        IdentityServerConstants.StandardScopes.Profile,
+                        "api1"
+                    }
                 },
                 new Client
                 {
@@ -58,6 +62,26 @@ public static class Config
                     ClientSecrets = new[] {new Secret("secret".Sha256())},
                     AllowedGrantTypes = new[] {"urn:ietf:params:oauth:grant-type:token-exchange"},
                     AllowedScopes = new[] { "sale.read", "sale.write" }
+                },
+                new Client
+                {
+                    ClientId = "postman",
+
+                    ClientSecrets = { new Secret("postman_secret".Sha256())},
+
+                    ClientName = "Postman password credential flow",
+
+                    RedirectUris = { "https://localhost:5001/signin-oidc" },
+
+                    BackChannelLogoutUri = "https://localhost:5001/bff/backchannel",
+
+                    PostLogoutRedirectUris = { "https://localhost:5001/signout-callback-oidc" },
+
+                    AllowedGrantTypes = GrantTypes.ResourceOwnerPasswordAndClientCredentials,
+
+                    AllowOfflineAccess = true,
+
+                    AllowedScopes = { "openid", "profile", "api" }
                 }
             };
         }

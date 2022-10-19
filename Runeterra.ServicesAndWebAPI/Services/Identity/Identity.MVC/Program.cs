@@ -1,18 +1,23 @@
 using System.Configuration;
 using Duende.IdentityServer.EntityFramework.Options;
 using Identity.MVC;
+using Identity.MVC.Data;
+using Identity.MVC.Data.Initialize;
+using Identity.MVC.Entity;
+using Identity.Services.Data;
 using IdentityServerHost.Quickstart.UI;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var configuration = builder.Configuration;
-
-var connectionString = configuration.GetConnectionString("DefaultConnection");
-
-var migrationsAssembly = typeof(Config).Assembly.GetName().Name;
-
 // Add services to the container.
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
+    .AddEntityFrameworkStores<ApplicationDbContext>().AddDefaultTokenProviders();
+
 builder.Services.AddControllersWithViews();
 //
 var builderDuende = builder.Services
@@ -37,15 +42,18 @@ var builderDuende = builder.Services
 
         options.EmitStaticAudienceClaim = true;
     })
-    .AddTestUsers(TestUsers.Users);
-// connection string
-    builderDuende.AddConfigurationStore(options => 
-        options.ConfigureDbContext = b => b.UseSqlServer(connectionString,
-            opt => opt.MigrationsAssembly(migrationsAssembly)));
-    builderDuende.AddOperationalStore(options =>
-        options.ConfigureDbContext = b => b.UseSqlServer(connectionString,
-            opt => opt.MigrationsAssembly(migrationsAssembly)));
-    //
+    .AddAspNetIdentity<ApplicationUser>();
+
+
+    // codes, tokens, consents
+    builderDuende.AddOperationalStore<AppPersistedGrantDbContext>(options =>
+        options.ConfigureDbContext = option =>
+            option.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+    // clients, resources
+    builderDuende.AddConfigurationStore<AppConfigurationDbContext>(options =>
+        options.ConfigureDbContext = option =>
+            option.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 
     builder.Services.AddAuthentication();
@@ -65,6 +73,7 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
 app.UseStaticFiles();
 
 app.UseRouting();
@@ -76,5 +85,25 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
+
+// Seed 
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var loggerFactory = services.GetRequiredService<ILoggerFactory>();
+    try
+    {
+        var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
+        var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+        await DbInitializer.SeedSuperAdminAsync(userManager, roleManager);
+    }
+    catch (Exception ex)
+    {
+        var logger = loggerFactory.CreateLogger<Program>();
+        logger.LogError(ex, "An error occurred seeding the DB.");
+    }
+}
+DbInitializer.InitializeDatabase(app);
 
 app.Run();
