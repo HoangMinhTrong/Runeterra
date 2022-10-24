@@ -1,5 +1,6 @@
 ﻿using Duende.IdentityServer;
 using Duende.IdentityServer.Models;
+using IdentityModel;
 
 namespace Identity.MVC;
 
@@ -10,22 +11,44 @@ public static class Config
             {
                 new IdentityResources.OpenId(),
                 new IdentityResources.Profile(),
+                new IdentityResources.Email(),
+                new IdentityResource
+                {
+                    Name = "role",
+                    UserClaims = new List<string> {"role"}
+                }
             };
 
         public static IEnumerable<ApiScope> ApiScopes =>
             new ApiScope[]
             {
-                new ApiScope("sale.all"),
-                new ApiScope("sale.read"),
-                new ApiScope("sale.write"),
+                new ApiScope("api", new[] {
+                    JwtClaimTypes.Name,
+                    JwtClaimTypes.Role,
+                    JwtClaimTypes.Email,
+                    JwtClaimTypes.ClientId,
+                    JwtClaimTypes.SessionId
+                }),
             };
 
         public static IEnumerable<ApiResource> ApiResources =>
             new List<ApiResource>
             {
-                new ApiResource("sale-api", "Sale APIs")
+                new ApiResource
                 {
-                    Scopes = { "sale.all", "sale.read", "sale.write" }
+                    Name = "api",
+                    DisplayName = "API #1",
+                    Description = "Allow the application to access API",
+                    Scopes = new List<string> {"api.read", "api.write"},
+                    ApiSecrets = new List<Secret> {new Secret("ScopeSecret".Sha256())}, // change me!
+                    UserClaims = new List<string> {
+                        JwtClaimTypes.Name,
+                        JwtClaimTypes.Role,
+                        JwtClaimTypes.Email,
+                        JwtClaimTypes.ClientId,
+                        JwtClaimTypes.SessionId
+                    }
+
                 }
             };
 
@@ -33,36 +56,6 @@ public static class Config
         {
             return new Client[]
             {
-                // BFF gateway
-                new Client
-                {
-                    ClientId = "web",
-                    ClientSecrets = { new Secret("secret".Sha256()) },
-                    
-                    AllowedGrantTypes = GrantTypes.Code,
-                    
-                    // where to redirect to after login
-                    RedirectUris = { "https://localhost:5001/signin-oidc" },
-                    
-                    // where to redirect to after logout
-                    PostLogoutRedirectUris = { "https://localhost:5001/signout-callback-oidc" },
-                    AllowAccessTokensViaBrowser =true,
-                    AllowOfflineAccess = true,
-
-                    AllowedScopes = new List<string>
-                    {
-                        IdentityServerConstants.StandardScopes.OpenId,
-                        IdentityServerConstants.StandardScopes.Profile,
-                        "api1"
-                    }
-                },
-                new Client
-                {
-                    ClientId = "sale-api",
-                    ClientSecrets = new[] {new Secret("secret".Sha256())},
-                    AllowedGrantTypes = new[] {"urn:ietf:params:oauth:grant-type:token-exchange"},
-                    AllowedScopes = new[] { "sale.read", "sale.write" }
-                },
                 new Client
                 {
                     ClientId = "postman",
