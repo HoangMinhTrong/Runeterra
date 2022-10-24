@@ -1,11 +1,8 @@
-using System.Configuration;
-using Duende.IdentityServer.EntityFramework.Options;
-using Identity.MVC;
+
 using Identity.MVC.Data;
 using Identity.MVC.Data.Initialize;
 using Identity.MVC.Entity;
 using Identity.Services.Data;
-using IdentityServerHost.Quickstart.UI;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -23,17 +20,6 @@ builder.Services.AddControllersWithViews();
 var builderDuende = builder.Services
     .AddIdentityServer(options =>
     {
-        // set path where to store keys
-        options.KeyManagement.KeyPath = "/Users/Shared/Keys";
-    
-        // new key every 30 days
-        options.KeyManagement.RotationInterval = TimeSpan.FromDays(30);
-    
-        // announce new key 2 days in advance in discovery
-        options.KeyManagement.PropagationTime = TimeSpan.FromDays(2);
-    
-        // keep old key for 7 days in discovery for validation of tokens
-        options.KeyManagement.RetentionDuration = TimeSpan.FromDays(7);
         options.Events.RaiseErrorEvents = true;
         options.Events.RaiseInformationEvents = true;
         options.Events.RaiseFailureEvents = true;
@@ -57,9 +43,6 @@ var builderDuende = builder.Services
 
 
     builder.Services.AddAuthentication();
-// in-memory, code config
-    
-
 
 
 var app = builder.Build();
