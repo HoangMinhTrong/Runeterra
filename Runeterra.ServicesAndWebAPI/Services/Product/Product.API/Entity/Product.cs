@@ -14,4 +14,7 @@ public class Product
     public string ImageId { get; set; }
     public string ProductTypeId { get; set; }
     public string StoreId { get; set; }
+    public Store Store { get; set; }
+    public Image Image { get; set; }
+    public ProductType ProductType { get; set; }
 }
