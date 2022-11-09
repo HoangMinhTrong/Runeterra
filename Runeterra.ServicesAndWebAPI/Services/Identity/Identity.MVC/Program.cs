@@ -3,6 +3,7 @@ using Identity.MVC.Data;
 using Identity.MVC.Data.Initialize;
 using Identity.MVC.Entity;
 using Identity.Services.Data;
+using MassTransit;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -44,6 +45,20 @@ var builderDuende = builder.Services
 
     builder.Services.AddAuthentication();
 
+// MassTransit
+builder.Services.AddMassTransit(x =>
+{
+    x.AddBus(provider => Bus.Factory.CreateUsingRabbitMq(config =>
+    {
+        config.Host(new Uri("rabbitmq://localhost"), h =>
+        {
+            h.Username("guest");
+            h.Password("guest");
+        });
+    }));
+});
+builder.Services.AddMassTransitHostedService();
+builder.Services.AddControllers();
 
 var app = builder.Build();
 
@@ -77,6 +92,7 @@ using (var scope = app.Services.CreateScope())
     var loggerFactory = services.GetRequiredService<ILoggerFactory>();
     try
     {
+        DbInitializer.InitializeDatabase(app);
         var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
         var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
         await DbInitializer.SeedSuperAdminAsync(userManager, roleManager);
@@ -87,6 +103,6 @@ using (var scope = app.Services.CreateScope())
         logger.LogError(ex, "An error occurred seeding the DB.");
     }
 }
-DbInitializer.InitializeDatabase(app);
+
 
 app.Run();
