@@ -10,5 +10,5 @@ public class ApplicationUser : IdentityUser
     public string BuildingNo { get; set; }
 
     [NotMapped] 
-    public string Role { get; set; }
+    public IEnumerable<string> Role { get; set; }
 }

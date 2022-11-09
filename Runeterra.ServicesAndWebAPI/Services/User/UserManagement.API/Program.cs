@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using UserManagement.API.Data;
 using UserManagement.API.Data.DataSeeding;
 using UserManagement.API.Entity;
+using UserManagement.API.Services;
+using UserManagement.API.Services.Base;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +15,9 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 });
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>().AddDefaultTokenProviders();
+
+// Dependency Injection
+builder.Services.AddScoped<IUserService, UserService>();
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
