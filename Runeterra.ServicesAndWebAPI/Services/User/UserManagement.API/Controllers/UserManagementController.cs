@@ -27,6 +27,10 @@ public class UserManagementController : ControllerBase
     public async Task<ApplicationUser> GetById(string id)
     {
         var user = await _userService.GetById(id);
+        if (user == null)
+        {
+            throw new Exception($"Could not found user");
+        }
         return user;
     }
 
@@ -43,10 +47,6 @@ public class UserManagementController : ControllerBase
     [HttpPut("{id}")]
     public async Task<UserDto> Update(UserDto applicationUser, string id)
     {
-        if (applicationUser.UserId != id)
-        {
-            NotFound();
-        }
         await _userService.Update(applicationUser, id);
         return applicationUser;
     }
@@ -55,6 +55,10 @@ public class UserManagementController : ControllerBase
     public async Task<ApplicationUser> Delete(string id)
     {
         var user = await _userService.Delete(id);
+        if (user == null)
+        {
+            throw new Exception($"Could not found user");
+        }
         return user;
     }
 }

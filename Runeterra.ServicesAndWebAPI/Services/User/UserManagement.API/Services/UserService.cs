@@ -50,6 +50,11 @@ public class UserService : IUserService
 
     public async Task<UserDto> Update(UserDto applicationUser, string id)
     {
+        if (applicationUser.UserId != id)
+        {
+            throw new Exception($"Could not found user");
+        }
+        
         var user = await _context.Users.FirstOrDefaultAsync(x => x.Id == id);
 
         user.Id = applicationUser.UserId;
