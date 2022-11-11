@@ -6,6 +6,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Identity.MVC", "Services\Id
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Product.API", "Services\Product\Product.API\Product.API.csproj", "{8E767FDC-34D2-47BE-9D38-A67184BB92E1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UserManagement.API", "Services\User\UserManagement.API\UserManagement.API.csproj", "{C3E858F6-B59A-457D-97A3-AE56A25843DC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +26,9 @@ Global
 		{8E767FDC-34D2-47BE-9D38-A67184BB92E1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8E767FDC-34D2-47BE-9D38-A67184BB92E1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8E767FDC-34D2-47BE-9D38-A67184BB92E1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C3E858F6-B59A-457D-97A3-AE56A25843DC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C3E858F6-B59A-457D-97A3-AE56A25843DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C3E858F6-B59A-457D-97A3-AE56A25843DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C3E858F6-B59A-457D-97A3-AE56A25843DC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
