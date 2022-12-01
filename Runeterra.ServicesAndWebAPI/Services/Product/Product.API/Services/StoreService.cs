@@ -18,7 +18,6 @@ public class StoreService : IStoreService
     }
     public async Task<StoreDto> Create(StoreDto storeDto)
     {
-        var objId = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
         if (storeDto != null)
         {
             var store = new Store
