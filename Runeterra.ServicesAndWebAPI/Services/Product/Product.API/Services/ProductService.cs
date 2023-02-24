@@ -20,8 +20,6 @@ public class ProductService : IProductService
     }
     public async Task<List<Entity.Product>> Get()
     {
-        var products = await _context.Products.Include(x => x.Image).Include(x => x.ProductType).Include(x => x.Store)
-            .ToListAsync();
         string baseUrl = "https://localhost:7241";
         var applicationUsers = new List<ApplicationUser>();
         using (var client = new HttpClient())
@@ -35,15 +33,11 @@ public class ProductService : IProductService
                 var userResponse = res.Content.ReadAsStringAsync().Result;
                 applicationUsers = JsonConvert.DeserializeObject<List<ApplicationUser>>(userResponse);
             }
-            var userList = new List<ApplicationUser>();
-            userList = applicationUsers;
-
-            if (userList.Count != applicationUsers.Count)
-            {
-                await _context.Users.AddRangeAsync(userList);
-                await _context.SaveChangesAsync();
-            }
         }
+        var products = await _context.Products.Include(x => x.Image)
+            .Include(x => x.ProductType)
+            .Include(x => x.Store)
+            .ToListAsync();
         return products;
     }
 

@@ -1,3 +1,4 @@
+using Identity.MVC.Data.Initialize;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using UserManagement.API.Data;
@@ -39,9 +40,11 @@ using (var scope = app.Services.CreateScope())
     var loggerFactory = services.GetRequiredService<ILoggerFactory>();
     try
     {
+        DbInitializer.InitializeDatabase(app);
         var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
         var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
         await SeedUser.Seeding(userManager, roleManager);
+        await DbInitializer.SeedSuperAdminAsync(userManager, roleManager);
     }
     catch (Exception ex)
     {
