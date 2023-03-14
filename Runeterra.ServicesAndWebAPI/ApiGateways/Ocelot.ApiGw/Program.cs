@@ -9,10 +9,16 @@ IConfiguration configuration = new ConfigurationBuilder()
     .Build();
 
 builder.Services.AddOcelot(configuration);
+builder.Services.AddCors();
 
 var app = builder.Build();
 
-
+app.UseCors(builder =>
+{
+    builder.AllowAnyOrigin() 
+        .AllowAnyMethod() // – To allow all HTTP methods.
+        .AllowAnyHeader(); // – To allow all request headers.
+});
 app.UseOcelot();
 
 app.Run();

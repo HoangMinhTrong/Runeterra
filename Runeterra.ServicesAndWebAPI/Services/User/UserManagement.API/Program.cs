@@ -1,8 +1,10 @@
+using Identity.MVC.Data.Initialize;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using UserManagement.API.Data;
 using UserManagement.API.Data.DataSeeding;
 using UserManagement.API.Entity;
+using UserManagement.API.Extensions;
 using UserManagement.API.Services;
 using UserManagement.API.Services.Base;
 
@@ -18,11 +20,18 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
 
 // Dependency Injection
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
+
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddAuthentication();
+builder.Services.ConfigureJWT(builder.Configuration);
+
+builder.Services.ConfigureSwagger();
 builder.Services.AddSwaggerGen();
+
 
 var app = builder.Build();
 
@@ -39,9 +48,11 @@ using (var scope = app.Services.CreateScope())
     var loggerFactory = services.GetRequiredService<ILoggerFactory>();
     try
     {
+        DbInitializer.InitializeDatabase(app);
         var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
         var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
         await SeedUser.Seeding(userManager, roleManager);
+        await DbInitializer.SeedSuperAdminAsync(userManager, roleManager);
     }
     catch (Exception ex)
     {
@@ -50,6 +61,8 @@ using (var scope = app.Services.CreateScope())
     }
 }
 app.UseHttpsRedirection();
+
+app.UseAuthentication();
 
 app.UseAuthorization();
 

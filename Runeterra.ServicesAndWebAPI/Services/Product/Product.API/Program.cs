@@ -1,7 +1,11 @@
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Newtonsoft.Json;
 using Product.API.Data;
-using Product.API.Message;
+using Product.API.Services;
+using Product.API.Services.Base;
+using UserManagement.API.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,31 +13,22 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddNewtonsoftJson(opts => opts.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore);
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-// Mass Transit
 
-builder.Services.AddMassTransit(x =>
-{
-    x.AddConsumer<UserConsume>();
+// Dependency Injection
+builder.Services.AddServices();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddAuthentication();
+builder.Services.ConfigureJWT(builder.Configuration);
 
-    x.AddBus(provider => Bus.Factory.CreateUsingRabbitMq(cfg =>
-    {
-        cfg.Host(new Uri("rabbitmq://localhost"), h =>
-        {
-            h.Username("guest");
-            h.Password("guest");
-        });
-        cfg.ReceiveEndpoint("user", ep =>
-        {
-            ep.PrefetchCount = 16;
-            ep.UseMessageRetry(r => r.Interval(2, 100));
-            ep.ConfigureConsumer<UserConsume>(provider);
-        });
-    }));
-});
+builder.Services.ConfigureSwagger();
+builder.Services.AddSwaggerGen();
+
 
 builder.Services.AddMassTransitHostedService();
 
@@ -46,7 +41,10 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+
 app.UseHttpsRedirection();
+
+app.UseAuthentication();
 
 app.UseAuthorization();
 

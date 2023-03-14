@@ -27,7 +27,7 @@ public class UserService : IUserService
         return user;
     }
 
-    public async Task<UserDto> Create(UserDto applicationUser)
+    public async Task<UserInfoResponse> Create(UserInfoResponse applicationUser)
     {
         // var user = new ApplicationUser();
         if (applicationUser != null)
@@ -48,7 +48,7 @@ public class UserService : IUserService
         return applicationUser;
     }
 
-    public async Task<UserDto> Update(UserDto applicationUser, string id)
+    public async Task<UserInfoResponse> Update(UserInfoResponse applicationUser, string id)
     {
         if (applicationUser.UserId != id)
         {
