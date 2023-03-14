@@ -8,8 +8,6 @@ public class StoreConfiguration : IEntityTypeConfiguration<Store>
 {
     public void Configure(EntityTypeBuilder<Store> builder)
     {
-        builder.HasOne(x => x.ApplicationUser)
-            .WithOne(x => x.Store)
-            .HasForeignKey<Store>(x => x.UserId);
+     
     }
 }

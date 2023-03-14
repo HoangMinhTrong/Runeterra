@@ -22,12 +22,12 @@ public class ProductController : ControllerBase
     }
 
     [HttpPost(Name = "CreateProduct")]
-    public async Task<ProductDto> Create(ProductDto productDto)
+    public async Task<IActionResult> Create(CreateProductRequest productDto)
     {
         if (ModelState.IsValid)
         {
             await _productService.Create(productDto);
         }
-        return productDto;
+        return Ok();
     }
 }

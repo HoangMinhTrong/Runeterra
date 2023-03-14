@@ -2,10 +2,11 @@
 
 namespace Product.API.Dtos;
 
-public class StoreDto
+public class CreateStoreRequest
+
 {
     [Key]
-    public string Id { get; set; }
+    public int Id { get; set; }
     public string Name { get; set; }
     public string ImageUrl { get; set; }
     public bool Status { get; set; }

@@ -14,8 +14,5 @@ public class ProductConfiguration : IEntityTypeConfiguration<Entity.Product>
         builder.HasOne(x => x.Store)
             .WithMany(x => x.Products)
             .HasForeignKey(x => x.StoreId);
-        builder.HasOne(x => x.Image)
-            .WithOne(x => x.Product)
-            .HasForeignKey<Entity.Product>(x => x.ImageId);
     }
 }

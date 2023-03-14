@@ -3,9 +3,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Newtonsoft.Json;
 using Product.API.Data;
-using Product.API.Message;
 using Product.API.Services;
 using Product.API.Services.Base;
+using UserManagement.API.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,30 +21,14 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 // Dependency Injection
-builder.Services.AddScoped<IStoreService, StoreService>();
-builder.Services.AddScoped<IProductService, ProductService>();
-builder.Services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-// Mass Transit
+builder.Services.AddServices();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddAuthentication();
+builder.Services.ConfigureJWT(builder.Configuration);
 
-builder.Services.AddMassTransit(x =>
-{
-    x.AddConsumer<UserConsume>();
+builder.Services.ConfigureSwagger();
+builder.Services.AddSwaggerGen();
 
-    x.AddBus(provider => Bus.Factory.CreateUsingRabbitMq(cfg =>
-    {
-        cfg.Host(new Uri("rabbitmq://localhost"), h =>
-        {
-            h.Username("guest");
-            h.Password("guest");
-        });
-        cfg.ReceiveEndpoint("user", ep =>
-        {
-            ep.PrefetchCount = 16;
-            ep.UseMessageRetry(r => r.Interval(2, 100));
-            ep.ConfigureConsumer<UserConsume>(provider);
-        });
-    }));
-});
 
 builder.Services.AddMassTransitHostedService();
 
@@ -59,6 +43,8 @@ if (app.Environment.IsDevelopment())
 
 
 app.UseHttpsRedirection();
+
+app.UseAuthentication();
 
 app.UseAuthorization();
 

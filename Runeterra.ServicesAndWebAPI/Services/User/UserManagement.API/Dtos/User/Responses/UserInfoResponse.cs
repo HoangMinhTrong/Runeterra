@@ -1,6 +1,6 @@
 ﻿namespace UserManagement.API.Dtos;
 
-public class UserDto
+public class UserInfoResponse
 {
     public string UserId { get; set; }
     public string FirstName { get; set; }
