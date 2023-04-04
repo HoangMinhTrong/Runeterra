@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Product.API.Dtos.Cart.Requests;
+using Product.API.Entity;
 using Product.API.Services.Base;
 
 namespace Product.API.Controllers;
@@ -14,12 +15,20 @@ public class CartController : ControllerBase
     {
         _cartService = cartService;
     }
-
-    [HttpPost("cart")]
-    public async Task<IActionResult> CreateCart(CreateCartRequest createCartRequest)
+    [HttpPost("items")]
+    public async Task<ActionResult> AddToCartAsync(AddToCartRequest request)
     {
-        var cart = _cartService.CreateCart(createCartRequest);
+        var cart = await _cartService.AddToCartAsync(request);
+
         return Ok(cart);
     }
 
+    [HttpGet("cart/items")]
+    public async Task<ActionResult<IEnumerable<CartDetail>>> GetCartDetailsAsync()
+    {
+        var cartDetails = await _cartService.GetCartDetailsAsync();
+
+        return Ok(cartDetails);
+    }
+   
 }

@@ -11,7 +11,7 @@ public class CreateProductRequest
     public double Price { get; set; }
     public bool Status { get; set; }
     public int Quantity { get; set; }
-    public string ImageId { get; set; }
+    public string ImageUrl { get; set; }
     public int ProductTypeId { get; set; }
     public int StoreId { get; set; }
 }

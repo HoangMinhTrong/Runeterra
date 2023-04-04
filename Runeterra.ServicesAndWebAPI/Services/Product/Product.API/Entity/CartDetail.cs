@@ -11,4 +11,5 @@ public class CartDetail
     public int  Quantity { get; set; }
     public Cart Cart { get; set; }
     public Product Product { get; set; }
+    
 }

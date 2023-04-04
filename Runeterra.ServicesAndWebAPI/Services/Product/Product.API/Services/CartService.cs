@@ -1,4 +1,5 @@
 ﻿using System.Security.Claims;
+using Microsoft.EntityFrameworkCore;
 using Product.API.Data;
 using Product.API.Dtos.Cart.Requests;
 using Product.API.Entity;
@@ -10,26 +11,95 @@ public class CartService : ICartService
 {
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly ApplicationDbContext _context;
-    
+    private static Cart _cart;
     public CartService(IHttpContextAccessor httpContextAccessor,ApplicationDbContext context)
     {
         _httpContextAccessor = httpContextAccessor;
         _context = context;
     }
-    public async Task<bool> CreateCart(CreateCartRequest cartRequest)
+
+    // public async Task<bool> AddToCart(AddToCartRequest addToCartRequest)
+    // {
+    //     var isAuthenticated = _httpContextAccessor.HttpContext.User.Identity.IsAuthenticated;
+    //     var userIdClaim = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
+    //     if (isAuthenticated)
+    //     {
+    //         if (_cart == null)
+    //         {
+    //             _cart = new Cart()
+    //             {
+    //                 userId = userIdClaim
+    //             };
+    //             await _context.Carts.AddAsync(_cart);
+    //             await _context.SaveChangesAsync();
+    //         }
+    //         
+    //     }
+    //     //
+    //     var cartDetail = new CartDetail()
+    //     {   id = addToCartRequest.Id,
+    //         Quantity = addToCartRequest.Quantity,
+    //         productId = addToCartRequest.ProductId,
+    //         cartId = _cart.id
+    //     };
+    //     await _context.CartDetails.AddAsync(cartDetail);
+    //     await _context.SaveChangesAsync();
+    //     return true;
+    // }
+
+    public async Task<bool> AddToCartAsync(AddToCartRequest request)
     {
-        if (cartRequest.UserId != null)
+        var userIdClaim = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
+        var cart = await _context.Carts.FirstOrDefaultAsync(x => x.userId == userIdClaim);
+        if (cart != null && cart.ExpirationTime >= DateTime.UtcNow)
         {
-            var cart = new Cart()
+            _cart = cart;
+        }
+        else
+        {
+            _cart = new Cart()
             {
-                id = cartRequest.Id,
-                userId = GetUserId(cartRequest.UserId),
-                createAt = DateTime.Now
+                userId = userIdClaim,
+                createAt = DateTime.UtcNow,
+                ExpirationTime = DateTime.UtcNow.AddDays(3),
             };
-            await _context.Carts.AddAsync(cart);
+            await _context.Carts.AddAsync(_cart);
             await _context.SaveChangesAsync();
         }
+        
+        var cartDetails = await _context.CartDetails
+            .FirstOrDefaultAsync(x => x.productId == request.ProductId);
+
+        if (cartDetails == null)
+        {
+            var cartDetail = new CartDetail
+            {
+                cartId = _cart.id,
+                productId = request.ProductId,
+                Quantity = request.Quantity
+            };
+            await _context.CartDetails.AddAsync(cartDetail);
+        }
+        else
+        {
+            cartDetails.Quantity += request.Quantity;
+            _context.CartDetails.Update(cartDetails);
+        }
+        await _context.SaveChangesAsync();
         return true;
+        
+    }
+
+    public async Task<IEnumerable<Cart>> GetCartDetailsAsync()
+    {
+        var userIdClaim = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
+        var carts = await _context.Carts
+            .Include(x=>x.CartDetails)
+            .ThenInclude(x=>x.Product)
+            .Where(x=>x.ExpirationTime >= DateTime.Today && x.userId == userIdClaim)
+            .ToListAsync();
+
+        return carts;
     }
 
     public string GetUserId(string userId)

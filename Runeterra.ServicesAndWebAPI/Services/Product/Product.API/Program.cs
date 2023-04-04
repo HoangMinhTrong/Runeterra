@@ -30,8 +30,6 @@ builder.Services.ConfigureSwagger();
 builder.Services.AddSwaggerGen();
 
 
-builder.Services.AddMassTransitHostedService();
-
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

@@ -8,5 +8,6 @@ public class Cart
     public int id { get; set; }
     public string userId { get; set; }
     public DateTime createAt { get; set; }
+    public DateTime ExpirationTime { get; set; }
     public ICollection<CartDetail> CartDetails { get; set; }
 }

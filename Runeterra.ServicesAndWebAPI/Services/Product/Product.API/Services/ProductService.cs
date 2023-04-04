@@ -38,6 +38,7 @@ public class ProductService : IProductService
                 Description = productDto.Description,
                 Price = productDto.Price,
                 Status = productDto.Status,
+                ImageUrl = productDto.ImageUrl,
                 Quantity = productDto.Quantity,
                 ProductTypeId = productDto.ProductTypeId,
                 StoreId = productDto.StoreId

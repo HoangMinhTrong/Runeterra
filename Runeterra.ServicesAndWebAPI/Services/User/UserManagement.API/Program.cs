@@ -59,6 +59,7 @@ using (var scope = app.Services.CreateScope())
         var logger = loggerFactory.CreateLogger<Program>();
         logger.LogError(ex, "An error occurred seeding the DB.");
     }
+    
 }
 app.UseHttpsRedirection();
 
