@@ -1,4 +1,5 @@
 ﻿using System.Net.Http.Headers;
+using System.Security.Claims;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
@@ -12,11 +13,13 @@ namespace Product.API.Services;
 public class ProductService : IProductService
 {
     private readonly ApplicationDbContext _context;
+    private readonly IHttpContextAccessor _httpContextAccessor;
     
-    public ProductService(ApplicationDbContext context)
+    public ProductService(ApplicationDbContext context, IHttpContextAccessor httpContextAccessor)
     {
         _context = context;
-        
+        _httpContextAccessor = httpContextAccessor;
+
     }
     public async Task<List<Entity.Product>> Get()
     {
@@ -29,6 +32,8 @@ public class ProductService : IProductService
 
     public async Task<bool> Create(CreateProductRequest productDto)
     {
+        var userIdClaim = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
+        var store = await _context.Stores.Where(x => x.UserId == userIdClaim).FirstOrDefaultAsync();
         if (productDto != null)
         {
             var product = new Entity.Product
@@ -41,7 +46,7 @@ public class ProductService : IProductService
                 ImageUrl = productDto.ImageUrl,
                 Quantity = productDto.Quantity,
                 ProductTypeId = productDto.ProductTypeId,
-                StoreId = productDto.StoreId
+                StoreId = store.Id
             };
             await _context.AddAsync(product);
             await _context.SaveChangesAsync();

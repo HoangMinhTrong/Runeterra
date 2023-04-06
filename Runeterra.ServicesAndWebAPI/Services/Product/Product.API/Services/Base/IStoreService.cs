@@ -9,4 +9,5 @@ public interface IStoreService
     public Task<bool> Create(CreateStoreRequest store);
     public Task<StoreInfoResponse> GetStore(string userId);
     public string GetUserId(string userId);
+    public Task<bool> ActiveStore(int id);
 }

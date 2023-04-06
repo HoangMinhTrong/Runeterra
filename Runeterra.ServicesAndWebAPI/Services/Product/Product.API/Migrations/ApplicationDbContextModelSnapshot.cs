@@ -33,6 +33,9 @@ namespace Product.API.Migrations
                     b.Property<DateTime>("ExpirationTime")
                         .HasColumnType("datetime2");
 
+                    b.Property<bool>("IsDelete")
+                        .HasColumnType("bit");
+
                     b.Property<DateTime>("createAt")
                         .HasColumnType("datetime2");
 
@@ -71,6 +74,31 @@ namespace Product.API.Migrations
                     b.ToTable("CartDetails");
                 });
 
+            modelBuilder.Entity("Product.API.Entity.DeliveryAddress", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<string>("Address")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ApartmentNo")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("BuildingNo")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("DeliveryAddress");
+                });
+
             modelBuilder.Entity("Product.API.Entity.Order", b =>
                 {
                     b.Property<int>("id")
@@ -78,6 +106,9 @@ namespace Product.API.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("id"), 1L, 1);
+
+                    b.Property<int>("DeliveryId")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("createAt")
                         .HasColumnType("datetime2");
@@ -93,6 +124,8 @@ namespace Product.API.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("id");
+
+                    b.HasIndex("DeliveryId");
 
                     b.HasIndex("orderTypeId");
 
@@ -136,18 +169,20 @@ namespace Product.API.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("id"), 1L, 1);
 
-                    b.Property<int>("OrderDetailid")
-                        .HasColumnType("int");
-
                     b.Property<string>("name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("id");
 
-                    b.HasIndex("OrderDetailid");
-
                     b.ToTable("OrderTypes");
+
+                    b.HasData(
+                        new
+                        {
+                            id = 1,
+                            name = "Cast"
+                        });
                 });
 
             modelBuilder.Entity("Product.API.Entity.Product", b =>
@@ -234,6 +269,9 @@ namespace Product.API.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -271,11 +309,19 @@ namespace Product.API.Migrations
 
             modelBuilder.Entity("Product.API.Entity.Order", b =>
                 {
+                    b.HasOne("Product.API.Entity.DeliveryAddress", "DeliveryAddress")
+                        .WithMany("Orders")
+                        .HasForeignKey("DeliveryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("Product.API.Entity.OrderType", "OrderType")
-                        .WithMany()
+                        .WithMany("Orders")
                         .HasForeignKey("orderTypeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("DeliveryAddress");
 
                     b.Navigation("OrderType");
                 });
@@ -297,17 +343,6 @@ namespace Product.API.Migrations
                     b.Navigation("Order");
 
                     b.Navigation("Product");
-                });
-
-            modelBuilder.Entity("Product.API.Entity.OrderType", b =>
-                {
-                    b.HasOne("Product.API.Entity.OrderDetail", "OrderDetail")
-                        .WithMany()
-                        .HasForeignKey("OrderDetailid")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("OrderDetail");
                 });
 
             modelBuilder.Entity("Product.API.Entity.Product", b =>
@@ -334,9 +369,19 @@ namespace Product.API.Migrations
                     b.Navigation("CartDetails");
                 });
 
+            modelBuilder.Entity("Product.API.Entity.DeliveryAddress", b =>
+                {
+                    b.Navigation("Orders");
+                });
+
             modelBuilder.Entity("Product.API.Entity.Order", b =>
                 {
                     b.Navigation("OrderDetails");
+                });
+
+            modelBuilder.Entity("Product.API.Entity.OrderType", b =>
+                {
+                    b.Navigation("Orders");
                 });
 
             modelBuilder.Entity("Product.API.Entity.Product", b =>
