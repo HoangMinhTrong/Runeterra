@@ -80,6 +80,7 @@ public static class ServiceExtension
         services.AddScoped<IStoreService, StoreService>()
             .AddScoped<IProductService, ProductService>()
             .AddScoped<ICartService, CartService>()
+            .AddScoped<IOrderService, OrderService>()
             .TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
         
         return services;

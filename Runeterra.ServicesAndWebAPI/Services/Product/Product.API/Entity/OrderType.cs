@@ -7,5 +7,5 @@ public class OrderType
     [Key]
     public int id { get; set; }
     public string name { get; set; }
-    public OrderDetail OrderDetail { get; set; }
+    public IEnumerable<Order> Orders { get; set; }
 }

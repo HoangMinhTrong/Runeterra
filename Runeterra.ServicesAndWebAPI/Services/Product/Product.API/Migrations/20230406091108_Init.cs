@@ -17,11 +17,40 @@ namespace Product.API.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     userId = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     createAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    ExpirationTime = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    ExpirationTime = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    IsDelete = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Carts", x => x.id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "DeliveryAddress",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Address = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    BuildingNo = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ApartmentNo = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_DeliveryAddress", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "OrderTypes",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    name = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_OrderTypes", x => x.id);
                 });
 
             migrationBuilder.CreateTable(
@@ -47,11 +76,41 @@ namespace Product.API.Migrations
                     ImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Status = table.Column<bool>(type: "bit", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    UserId = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    UserId = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Stores", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Orders",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    total = table.Column<double>(type: "float", nullable: false),
+                    createAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    userId = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    orderTypeId = table.Column<int>(type: "int", nullable: false),
+                    DeliveryId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Orders", x => x.id);
+                    table.ForeignKey(
+                        name: "FK_Orders_DeliveryAddress_DeliveryId",
+                        column: x => x.DeliveryId,
+                        principalTable: "DeliveryAddress",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Orders_OrderTypes_orderTypeId",
+                        column: x => x.orderTypeId,
+                        principalTable: "OrderTypes",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -128,6 +187,11 @@ namespace Product.API.Migrations
                 {
                     table.PrimaryKey("PK_OrderDetails", x => x.id);
                     table.ForeignKey(
+                        name: "FK_OrderDetails_Orders_orderId",
+                        column: x => x.orderId,
+                        principalTable: "Orders",
+                        principalColumn: "id");
+                    table.ForeignKey(
                         name: "FK_OrderDetails_Products_productId",
                         column: x => x.productId,
                         principalTable: "Products",
@@ -135,47 +199,10 @@ namespace Product.API.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
-            migrationBuilder.CreateTable(
-                name: "OrderTypes",
-                columns: table => new
-                {
-                    id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    OrderDetailid = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_OrderTypes", x => x.id);
-                    table.ForeignKey(
-                        name: "FK_OrderTypes_OrderDetails_OrderDetailid",
-                        column: x => x.OrderDetailid,
-                        principalTable: "OrderDetails",
-                        principalColumn: "id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Orders",
-                columns: table => new
-                {
-                    id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    total = table.Column<double>(type: "float", nullable: false),
-                    createAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    userId = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    orderTypeId = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Orders", x => x.id);
-                    table.ForeignKey(
-                        name: "FK_Orders_OrderTypes_orderTypeId",
-                        column: x => x.orderTypeId,
-                        principalTable: "OrderTypes",
-                        principalColumn: "id",
-                        onDelete: ReferentialAction.Cascade);
-                });
+            migrationBuilder.InsertData(
+                table: "OrderTypes",
+                columns: new[] { "id", "name" },
+                values: new object[] { 1, "Cast" });
 
             migrationBuilder.InsertData(
                 table: "ProductTypes",
@@ -203,14 +230,14 @@ namespace Product.API.Migrations
                 column: "productId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Orders_DeliveryId",
+                table: "Orders",
+                column: "DeliveryId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Orders_orderTypeId",
                 table: "Orders",
                 column: "orderTypeId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_OrderTypes_OrderDetailid",
-                table: "OrderTypes",
-                column: "OrderDetailid");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Products_ProductTypeId",
@@ -221,48 +248,36 @@ namespace Product.API.Migrations
                 name: "IX_Products_StoreId",
                 table: "Products",
                 column: "StoreId");
-
-            migrationBuilder.AddForeignKey(
-                name: "FK_OrderDetails_Orders_orderId",
-                table: "OrderDetails",
-                column: "orderId",
-                principalTable: "Orders",
-                principalColumn: "id");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropForeignKey(
-                name: "FK_OrderDetails_Products_productId",
-                table: "OrderDetails");
-
-            migrationBuilder.DropForeignKey(
-                name: "FK_OrderDetails_Orders_orderId",
-                table: "OrderDetails");
-
             migrationBuilder.DropTable(
                 name: "CartDetails");
+
+            migrationBuilder.DropTable(
+                name: "OrderDetails");
 
             migrationBuilder.DropTable(
                 name: "Carts");
 
             migrationBuilder.DropTable(
+                name: "Orders");
+
+            migrationBuilder.DropTable(
                 name: "Products");
+
+            migrationBuilder.DropTable(
+                name: "DeliveryAddress");
+
+            migrationBuilder.DropTable(
+                name: "OrderTypes");
 
             migrationBuilder.DropTable(
                 name: "ProductTypes");
 
             migrationBuilder.DropTable(
                 name: "Stores");
-
-            migrationBuilder.DropTable(
-                name: "Orders");
-
-            migrationBuilder.DropTable(
-                name: "OrderTypes");
-
-            migrationBuilder.DropTable(
-                name: "OrderDetails");
         }
     }
 }

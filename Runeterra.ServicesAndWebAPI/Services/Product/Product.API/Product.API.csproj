@@ -31,6 +31,7 @@
 
     <ItemGroup>
       <Folder Include="Dtos\Cart\Responses" />
+      <Folder Include="Dtos\Order\Responses" />
       <Folder Include="Dtos\Product\Responses" />
     </ItemGroup>
 

@@ -41,4 +41,10 @@ public class StoreController : ControllerBase
         return store;
     }
 
+    [HttpPatch]
+    public async Task<IActionResult> ActiveStore(int id)
+    {
+        var activeStore = _storeService.ActiveStore(id);
+        return Ok(activeStore);
+    }
 }

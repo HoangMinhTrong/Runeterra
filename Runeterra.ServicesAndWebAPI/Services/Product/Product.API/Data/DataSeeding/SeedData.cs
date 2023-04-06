@@ -14,5 +14,12 @@ public static class SeedData
                 Name = "Manga"
             }
         );
+        modelBuilder.Entity<OrderType>().HasData(
+            new OrderType()
+            {
+                id = 1,
+                name = "Cast"
+            }
+        );
     }
 }

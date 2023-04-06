@@ -9,5 +9,6 @@ public class Cart
     public string userId { get; set; }
     public DateTime createAt { get; set; }
     public DateTime ExpirationTime { get; set; }
+    public bool IsDelete { get; set; }
     public ICollection<CartDetail> CartDetails { get; set; }
 }

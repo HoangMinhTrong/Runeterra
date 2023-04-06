@@ -17,41 +17,11 @@ public class CartService : ICartService
         _httpContextAccessor = httpContextAccessor;
         _context = context;
     }
-
-    // public async Task<bool> AddToCart(AddToCartRequest addToCartRequest)
-    // {
-    //     var isAuthenticated = _httpContextAccessor.HttpContext.User.Identity.IsAuthenticated;
-    //     var userIdClaim = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
-    //     if (isAuthenticated)
-    //     {
-    //         if (_cart == null)
-    //         {
-    //             _cart = new Cart()
-    //             {
-    //                 userId = userIdClaim
-    //             };
-    //             await _context.Carts.AddAsync(_cart);
-    //             await _context.SaveChangesAsync();
-    //         }
-    //         
-    //     }
-    //     //
-    //     var cartDetail = new CartDetail()
-    //     {   id = addToCartRequest.Id,
-    //         Quantity = addToCartRequest.Quantity,
-    //         productId = addToCartRequest.ProductId,
-    //         cartId = _cart.id
-    //     };
-    //     await _context.CartDetails.AddAsync(cartDetail);
-    //     await _context.SaveChangesAsync();
-    //     return true;
-    // }
-
     public async Task<bool> AddToCartAsync(AddToCartRequest request)
     {
         var userIdClaim = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
         var cart = await _context.Carts.FirstOrDefaultAsync(x => x.userId == userIdClaim);
-        if (cart != null && cart.ExpirationTime >= DateTime.UtcNow)
+        if (cart != null && cart.ExpirationTime >= DateTime.UtcNow && _cart.IsDelete)
         {
             _cart = cart;
         }
@@ -62,6 +32,7 @@ public class CartService : ICartService
                 userId = userIdClaim,
                 createAt = DateTime.UtcNow,
                 ExpirationTime = DateTime.UtcNow.AddDays(3),
+                IsDelete = true
             };
             await _context.Carts.AddAsync(_cart);
             await _context.SaveChangesAsync();
@@ -79,6 +50,7 @@ public class CartService : ICartService
                 Quantity = request.Quantity
             };
             await _context.CartDetails.AddAsync(cartDetail);
+            await _context.SaveChangesAsync();
         }
         else
         {
