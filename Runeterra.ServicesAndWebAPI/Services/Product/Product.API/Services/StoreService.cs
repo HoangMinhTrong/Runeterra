@@ -40,24 +40,39 @@ public class StoreService : IStoreService
 
     public async Task<StoreInfoResponse> GetStore(string? userId)
     {
-        userId = GetUserId(userId);
-        var store = await _context.Stores.SingleOrDefaultAsync(x => x.UserId == userId);
-        var storeInfo = new StoreInfoResponse()
+        var store = await _context.Stores.SingleOrDefaultAsync(x => x.UserId == GetUserId(userId));
+        if (store.IsActive)
         {
-            Id = store.Id,
-            Name = store.Name,
-            ImageUrl = store.ImageUrl,
-            Status = store.Status,
-            Description = store.Description,
-            UserId = store.UserId
-        };
-        return storeInfo;
-        
+            var storeInfo = new StoreInfoResponse()
+            {
+                Id = store.Id,
+                Name = store.Name,
+                ImageUrl = store.ImageUrl,
+                Status = store.Status,
+                Description = store.Description,
+                UserId = store.UserId
+            };
+            return storeInfo;
+        }
+        return null;
     }
 
     public string GetUserId(string userId)
     {
         var userIdClaim = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
         return userId = userIdClaim;
+    }
+
+    public async Task<bool> ActiveStore(int id)
+    {
+        var storeId = await _context.Stores.FindAsync(id);
+        if (storeId != null)
+        { 
+            storeId.IsActive = true;
+            _context.Stores.Update(storeId);
+            await _context.SaveChangesAsync();
+        }
+
+        return true;
     }
 }
