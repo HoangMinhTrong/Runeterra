@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using PayPal.v1.Payments;
 using Product.API.Dtos.Order.Requests;
 using Product.API.Entity;
 using Product.API.Services.Base;
+using Payer = PayPal.v1.Orders.Payer;
 
 namespace Product.API.Controllers;
 
@@ -27,13 +29,13 @@ public class OrderController : ControllerBase
     public async Task<IActionResult> CreatePaymentAsync()
     {
         var approvalUrl = await _paypalService.CreatePaymentAsync();
-        return Ok(new { approvalUrl });
+        return Ok(new { approvalUrl});
     }
 
-    [HttpPost("capture-payment")]
-    public async Task<IActionResult> CapturePaymentAsync(ConfirmCheckoutRequest confirmCheckoutRequest)
+    [HttpGet("capture-payment")]
+    public async Task<IActionResult> CapturePaymentAsync(string paymentId,string token, string PayerID)
     {
-        var order = await _paypalService.CapturePaymentAsync(confirmCheckoutRequest);
+        var order = await _paypalService.CapturePaymentAsync(paymentId, token,PayerID);
         return Ok(order);
     }
 

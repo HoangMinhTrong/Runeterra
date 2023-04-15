@@ -31,6 +31,7 @@ public class PaypalService : IPaypalService
         _context = context;
         _cartService = cartService;
         _config = config;
+        
     }
     
     public async Task<string> CreatePaymentAsync()
@@ -53,10 +54,11 @@ public class PaypalService : IPaypalService
             itemList.Items.Add(new Item()
             {
                 Name = "Test",
+                Description = item.productId.ToString(),
                 Currency = "USD",
                 Price = "12",
                 Quantity = "1",
-                Sku = "sku",
+                Sku = userIdClaim,
                 Tax = "0"
             });
         }
@@ -73,6 +75,7 @@ public class PaypalService : IPaypalService
                 {
                     Amount = new Amount()
                     {
+                        
                         Total = "12",
                         Currency = "USD"
                     },
@@ -82,8 +85,8 @@ public class PaypalService : IPaypalService
             },
             RedirectUrls = new RedirectUrls()
             {
-                ReturnUrl = $"{hostname}/api/paypal/capture-payment",
-                CancelUrl = $"{hostname}/api/paypal/cancel-payment"
+                ReturnUrl = $"{hostname}/api/order/capture-payment",
+                CancelUrl = $"{hostname}/api/order/cancel-payment"
             },
             Payer = new Payer()
             {
@@ -96,73 +99,83 @@ public class PaypalService : IPaypalService
 
         var response = await client.Execute(request);
         var result = response.Result<Payment>();
-
         return result.Links.FirstOrDefault(x => x.Rel.Equals("approval_url")).Href;
     }
 
-    public async Task<bool> CapturePaymentAsync(ConfirmCheckoutRequest confirmCheckoutRequest)
+    public async Task<bool> CapturePaymentAsync(string paymentId,string token, string PayerID)
     {
         var clientId = _paypalSettings.Value.ClientId = _config.GetValue<string>("PaypalSettings:ClientId");
         var secret = _paypalSettings.Value.ClientSecret = _config.GetValue<string>("PaypalSettings:SecretKey");
         var environment = new SandboxEnvironment(clientId, secret);
         var client = new PayPalHttpClient(environment);
-        var userIdClaim = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
-        var carts = await _context.CartDetails.Where(x => x.Cart.userId == userIdClaim).ToListAsync();
+        // var userIdClaim = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
+        // var carts = await _context.CartDetails.Where(x => x.Cart.userId == userIdClaim).ToListAsync();
         var products = _context.Products
             .Where(p => _context.CartDetails.Any(ci => ci.productId == p.Id))
             .ToList();
-        var orderDetails = new List<OrderDetail>();
-        foreach (var cart in carts)
-        {
-            var paymentExecution = new PaymentExecution()
+
+        
+        var paymentExecution = new PaymentExecution()
             {
-                PayerId = userIdClaim
+                PayerId = PayerID
             };
-            var request = new PaymentExecuteRequest(_order.id.ToString());
+            var request = new PaymentExecuteRequest(paymentId);
             request.RequestBody(paymentExecution);
 
             var response = await client.Execute(request);
             var result = response.Result<Payment>();
-            
+           
             var confirmCheckout = new DeliveryAddress()
             {
-                Address = confirmCheckoutRequest.Address,
-                ApartmentNo = confirmCheckoutRequest.ApartmentNo,
-                BuildingNo = confirmCheckoutRequest.BuildingNo,
+                Address = result.Payer.PayerInfo.ShippingAddress.Line1,
+                ApartmentNo = "test",
+                BuildingNo = result.Payer.PayerInfo.ShippingAddress.State,
             };
             await _context.AddAsync(confirmCheckout);
             await _context.SaveChangesAsync();
-            //
-            _order = new Order()
-            {
-                id = Int32.Parse(result.Id),
-                userId = userIdClaim,
-                createAt = DateTime.Now,
-                orderTypeId = 1001,
-            };
-            await _context.Orders.AddAsync(_order);
-            await _context.SaveChangesAsync();
+            
+            
+            
+            
 
-            foreach (var item in carts)
+            var orderDetails = new List<OrderDetail>();
+            foreach (var item in result.Transactions)
             {
-                var product = products.FirstOrDefault(p => p.Id == item.productId);
-                var orderDetail = new OrderDetail
+                foreach (var skuItem in item.ItemList.Items)
                 {
-                    productId = item.productId,
-                    quantity = item.Quantity,
-                    unitPrice = product.Price,
-                    orderId = _order.id
+                    _order = new Order()
+                    {
+                        userId = skuItem.Sku,
+                        createAt = DateTime.Now,
+                        orderTypeId = 1001,
+                        DeliveryId = confirmCheckout.Id
+                    };
+                    await _context.Orders.AddAsync(_order);
+                    await _context.SaveChangesAsync();
                     
-                };
-                orderDetails.Add(orderDetail);
+                    var product = products.FirstOrDefault(x => x.Id.ToString() == skuItem.Description);
+                    if (product == null)
+                    {
+                        // handle null case
+                    }
+
+                    var orderDetail = new OrderDetail
+                    {
+                        productId = product.Id,
+                        quantity = int.Parse(skuItem.Quantity),
+                        unitPrice = product.Price,
+                        orderId = _order.id
+                    };
+                    orderDetails.Add(orderDetail);
+                }
             }
+
             await _context.OrderDetails.AddRangeAsync(orderDetails);
             await _context.SaveChangesAsync();
 
-            var clearCart = await _cartService.GetCartDetailsAsync();
+            var clearCart = await _context.Carts.ToListAsync();
             _context.RemoveRange(clearCart);
             await _context.SaveChangesAsync();
-        }
-        return true;
+            return true;
     }
 }
