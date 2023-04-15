@@ -81,8 +81,8 @@ public static class ServiceExtension
             .AddScoped<IProductService, ProductService>()
             .AddScoped<ICartService, CartService>()
             .AddScoped<IOrderService, OrderService>()
+            .AddScoped<IPaypalService, PaypalService>()
             .TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-        
         return services;
     }
 }

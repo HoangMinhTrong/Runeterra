@@ -38,7 +38,7 @@ public class OrderService : IOrderService
             await _context.AddAsync(confirmCheckout);
             await _context.SaveChangesAsync();
             //
-            var listOrderType = await _context.OrderTypes.ToListAsync();
+           
             _order = new Order()
                 {
                     userId = userIdClaim,

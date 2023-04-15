@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Newtonsoft.Json;
 using Product.API.Data;
+using Product.API.Dtos.Paypal.Requests;
 using Product.API.Services;
 using Product.API.Services.Base;
 using UserManagement.API.Extensions;
@@ -25,7 +26,7 @@ builder.Services.AddServices();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddAuthentication();
 builder.Services.ConfigureJWT(builder.Configuration);
-
+builder.Services.Configure<PaypalSettings>((builder.Configuration.GetSection("Paypal")));
 builder.Services.ConfigureSwagger();
 builder.Services.AddSwaggerGen();
 
