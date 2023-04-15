@@ -25,6 +25,7 @@
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="Newtonsoft.Json.Bson" Version="1.0.3-beta1" />
+        <PackageReference Include="PayPal" Version="2.0.0-rc2" />
         <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
         <PackageReference Include="System.Net.Http" Version="4.3.4" />
     </ItemGroup>
