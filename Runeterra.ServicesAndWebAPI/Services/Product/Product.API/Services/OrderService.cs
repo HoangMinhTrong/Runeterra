@@ -23,12 +23,10 @@ public class OrderService : IOrderService
     public async Task<bool> Checkout(ConfirmCheckoutRequest confirmCheckoutRequest)
     {
         var userIdClaim = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
-       
-            var cart = await _context.CartDetails.Where(x => x.Cart.userId == userIdClaim).ToListAsync();
-            var products = _context.Products
-                .Where(p => _context.CartDetails.Any(ci => ci.productId == p.Id))
-                .ToList();
-            var orderDetails = new List<OrderDetail>();
+
+        var cart = await _context.CartDetails.Where(x => x.Cart.userId == userIdClaim).Include(x => x.Product)
+            .ToListAsync();
+        var orderDetails = new List<OrderDetail>();
             var confirmCheckout = new DeliveryAddress()
             {
                 Address = confirmCheckoutRequest.Address,
@@ -51,12 +49,11 @@ public class OrderService : IOrderService
         
             foreach (var item in cart)
             {
-                var product = products.FirstOrDefault(p => p.Id == item.productId);
                 var orderDetail = new OrderDetail
                 {
                     productId = item.productId,
                     quantity = item.Quantity,
-                    unitPrice = product.Price,
+                    unitPrice = item.Product.Price,
                     orderId = _order.id
                     
                 };
