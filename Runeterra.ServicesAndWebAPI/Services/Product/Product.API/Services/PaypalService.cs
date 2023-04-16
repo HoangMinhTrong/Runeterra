@@ -41,27 +41,32 @@ public class PaypalService : IPaypalService
         var environment = new SandboxEnvironment(clientId, secret);
         var client = new PayPalHttpClient(environment);
         var userIdClaim = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
-        var carts = await _context.CartDetails.Where(x => x.Cart.userId == userIdClaim).ToListAsync();
+        var carts = await _context.CartDetails.Where(x => x.Cart.userId == userIdClaim).Include(x => x.Product)
+            .ToListAsync();
+        List<double> totalList = new List<double>();
         #region Create Paypal Order
 
         var itemList = new ItemList()
         {
             Items = new List<Item>()
-        };
-
+        };  
+        
         foreach (var item in carts)
         {
             itemList.Items.Add(new Item()
             {
-                Name = "Test",
+                Name = item.Product.Name,
                 Description = item.productId.ToString(),
                 Currency = "USD",
-                Price = "12",
-                Quantity = "1",
+                Price = item.Product.Price.ToString(),
+                Quantity = item.Quantity.ToString(),
                 Sku = userIdClaim,
                 Tax = "0"
             });
+            var total = item.Quantity * item.Product.Price;
+            totalList.Add(total);
         }
+        var grandTotal = totalList.Sum();
         #endregion
         var paypalOrderId = DateTime.Now.Ticks;
         var hostname = $"{_httpContextAccessor.HttpContext.Request.Scheme}://{_httpContextAccessor.HttpContext.Request.Host}";
@@ -76,7 +81,7 @@ public class PaypalService : IPaypalService
                     Amount = new Amount()
                     {
                         
-                        Total = "12",
+                        Total = grandTotal.ToString(),
                         Currency = "USD"
                     },
                     ItemList = itemList,
@@ -108,8 +113,6 @@ public class PaypalService : IPaypalService
         var secret = _paypalSettings.Value.ClientSecret = _config.GetValue<string>("PaypalSettings:SecretKey");
         var environment = new SandboxEnvironment(clientId, secret);
         var client = new PayPalHttpClient(environment);
-        // var userIdClaim = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
-        // var carts = await _context.CartDetails.Where(x => x.Cart.userId == userIdClaim).ToListAsync();
         var products = _context.Products
             .Where(p => _context.CartDetails.Any(ci => ci.productId == p.Id))
             .ToList();
@@ -134,10 +137,6 @@ public class PaypalService : IPaypalService
             await _context.AddAsync(confirmCheckout);
             await _context.SaveChangesAsync();
             
-            
-            
-            
-
             var orderDetails = new List<OrderDetail>();
             foreach (var item in result.Transactions)
             {
@@ -148,7 +147,8 @@ public class PaypalService : IPaypalService
                         userId = skuItem.Sku,
                         createAt = DateTime.Now,
                         orderTypeId = 1001,
-                        DeliveryId = confirmCheckout.Id
+                        DeliveryId = confirmCheckout.Id,
+                        total = double.Parse(item.Amount.Total) 
                     };
                     await _context.Orders.AddAsync(_order);
                     await _context.SaveChangesAsync();
