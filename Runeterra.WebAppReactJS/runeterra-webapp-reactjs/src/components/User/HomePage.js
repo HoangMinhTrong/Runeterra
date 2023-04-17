@@ -1,5 +1,6 @@
 import axios from "axios";
 import React from "react";
+import instance from "../../apis/Auth/Auth.js"
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 const baseURL = "https://localhost:7241/gateway/product";
@@ -8,7 +9,7 @@ export default function HomePage(){
     const [product, setProduct] = React.useState([]);
 
     React.useEffect(() => {
-        axios.get(baseURL).then((response) => {
+        instance.get(baseURL).then((response) => {
             setProduct(response.data);
             console.log(response.data)
         });
@@ -25,7 +26,7 @@ export default function HomePage(){
                                     product.map(prod => (
                                         <div className="col mb-5">
                                             <div className="card h-100">
-                                                <img className="card-img-top" src={prod.image.url}
+                                                <img className="card-img-top"
                                                      alt="..."/>
                                                 <div className="card-body p-4">
                                                     <div className="text-center">
