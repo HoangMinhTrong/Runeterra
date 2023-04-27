@@ -6,4 +6,5 @@ public interface IProductService
 {
     public Task<List<Entity.Product>> Get();
     public Task<bool> Create(CreateProductRequest productDto);
+    public Task<Entity.Product> GetById(int id);
 }

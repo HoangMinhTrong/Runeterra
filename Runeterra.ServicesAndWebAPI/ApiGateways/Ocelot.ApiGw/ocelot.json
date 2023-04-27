@@ -1,7 +1,7 @@
 ﻿{
   "Routes": [
     {
-      "DownstreamPathTemplate": "/api/usermanagement",
+      "DownstreamPathTemplate": "/api/usermanagement/login",
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
@@ -9,7 +9,7 @@
           "Port": 7001
         }
       ],
-      "UpstreamPathTemplate": "/gateway/user",
+      "UpstreamPathTemplate": "/gateway/user/auth",
       "UpstreamHttpMethod": [ "POST", "PUT", "GET", "DELETE" ]
     },
     {
@@ -22,6 +22,42 @@
         }
       ],
       "UpstreamPathTemplate": "/gateway/product",
+      "UpstreamHttpMethod": [ "POST", "GET" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/product/id/{id}",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 6001
+        }
+      ],
+      "UpstreamPathTemplate": "/gateway/product/id/{id}",
+      "UpstreamHttpMethod": [ "POST", "GET" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/cart/",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 6001
+        }
+      ],
+      "UpstreamPathTemplate": "/gateway/cart/",
+      "UpstreamHttpMethod": [ "POST", "GET" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/order/create-payment",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 6001
+        }
+      ],
+      "UpstreamPathTemplate": "/gateway/checkout-paypal",
       "UpstreamHttpMethod": [ "POST", "GET" ]
     }
   ]

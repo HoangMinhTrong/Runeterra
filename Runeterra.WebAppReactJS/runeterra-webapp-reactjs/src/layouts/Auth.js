@@ -35,8 +35,6 @@ export default function Auth() {
             console.error(error);
         }
     };
-
-
     return (
         <>
             <Navbar transparent />

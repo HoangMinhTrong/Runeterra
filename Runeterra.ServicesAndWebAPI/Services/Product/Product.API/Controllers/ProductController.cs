@@ -20,7 +20,19 @@ public class ProductController : ControllerBase
         var products = await _productService.Get();
         return products;
     }
-
+    [HttpGet("{id}")]
+    public async Task<Entity.Product> GetById(int id)
+    {
+        var product = await _productService.GetById(id);
+        return product;
+    }
+    
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteProduct(int id)
+    {
+        return Ok(id);
+    }
+    
     [HttpPost(Name = "CreateProduct")]
     public async Task<IActionResult> Create(CreateProductRequest productDto)
     {

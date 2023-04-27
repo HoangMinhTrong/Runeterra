@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
+
 namespace Product.API.Entity;
 
 public class OrderDetail

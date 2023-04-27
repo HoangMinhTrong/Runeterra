@@ -172,7 +172,7 @@ public class PaypalService : IPaypalService
 
             await _context.OrderDetails.AddRangeAsync(orderDetails);
             await _context.SaveChangesAsync();
-
+            
             var clearCart = await _context.Carts.ToListAsync();
             _context.RemoveRange(clearCart);
             await _context.SaveChangesAsync();

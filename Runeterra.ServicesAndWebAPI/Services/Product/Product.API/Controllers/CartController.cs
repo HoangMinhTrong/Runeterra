@@ -15,15 +15,16 @@ public class CartController : ControllerBase
     {
         _cartService = cartService;
     }
-    [HttpPost("items")]
+    [HttpPost]
     public async Task<ActionResult> AddToCartAsync(AddToCartRequest request)
     {
+        
         var cart = await _cartService.AddToCartAsync(request);
 
         return Ok(cart);
     }
 
-    [HttpGet("cart/items")]
+    [HttpGet]
     public async Task<ActionResult<IEnumerable<CartDetail>>> GetCartDetailsAsync()
     {
         var cartDetails = await _cartService.GetCartDetailsAsync();

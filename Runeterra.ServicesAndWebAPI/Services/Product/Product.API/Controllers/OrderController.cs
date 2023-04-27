@@ -36,12 +36,27 @@ public class OrderController : ControllerBase
     public async Task<IActionResult> CapturePaymentAsync(string paymentId,string token, string PayerID)
     {
         var order = await _paypalService.CapturePaymentAsync(paymentId, token,PayerID);
-        return Ok(order);
+        return Redirect("http://localhost:3000");
     }
 
     [HttpGet("cancel-payment")]
     public IActionResult CancelPaymentAsync()
     {
         return Ok("Payment cancelled.");
+    }
+    [HttpPatch("approve")]
+    public IActionResult ApproveOrder(int id)
+    {
+        return Ok(id);
+    }
+    [HttpGet("{id}")]
+    public IActionResult GetById(int id)
+    {
+        return Ok(id);
+    }
+    [HttpGet()]
+    public IActionResult GetAll()
+    {
+        return Ok();
     }
 }

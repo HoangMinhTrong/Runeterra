@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Product.API.Data;
 using Product.API.Dtos.Cart.Requests;
+using Product.API.Dtos.Cart.Responses;
 using Product.API.Entity;
 using Product.API.Services.Base;
 
@@ -21,7 +22,7 @@ public class CartService : ICartService
     {
         var userIdClaim = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
         var cart = await _context.Carts.FirstOrDefaultAsync(x => x.userId == userIdClaim);
-        if (cart != null && cart.ExpirationTime >= DateTime.UtcNow && _cart.IsDelete)
+        if (cart != null && cart.ExpirationTime >= DateTime.UtcNow)
         {
             _cart = cart;
         }
@@ -39,7 +40,8 @@ public class CartService : ICartService
         }
         
         var cartDetails = await _context.CartDetails
-            .FirstOrDefaultAsync(x => x.productId == request.ProductId);
+            .Include(x=>x.Product).ThenInclude(x=>x.Store)
+            .FirstOrDefaultAsync(x => x.productId == request.ProductId && x.Product.Store.UserId == userIdClaim);
 
         if (cartDetails == null)
         {
@@ -62,16 +64,30 @@ public class CartService : ICartService
         
     }
 
-    public async Task<IEnumerable<Cart>> GetCartDetailsAsync()
+    public async Task<IEnumerable<ProductInCartResponse>> GetCartDetailsAsync()
     {
         var userIdClaim = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
-        var carts = await _context.Carts
-            .Include(x=>x.CartDetails)
-            .ThenInclude(x=>x.Product)
-            .Where(x=>x.ExpirationTime >= DateTime.Today && x.userId == userIdClaim)
-            .ToListAsync();
-
-        return carts;
+        var products = await _context.Products
+            .Include(x => x.CartDetails).ThenInclude(x => x.Cart)
+            .Include(x => x.Store)
+            .Where(x => x.CartDetails.Any(cd =>
+                cd.Cart.ExpirationTime >= DateTime.Today && cd.Cart.userId == userIdClaim)).ToListAsync();
+        
+        var productInCart = new List<ProductInCartResponse>();
+        foreach (var product in products)
+        {
+            var productResponse = new ProductInCartResponse
+            {
+                Id = product.Id,
+                Name = product.Name,
+                Price = product.Price,
+                ImageUrl = product.ImageUrl,
+                Description = product.Description,
+                Quantity = product.CartDetails.FirstOrDefault(cd => cd.Cart.userId == userIdClaim)?.Quantity ?? 0,
+            };
+            productInCart.Add(productResponse);
+        }
+        return productInCart;
     }
 
     public string GetUserId(string userId)

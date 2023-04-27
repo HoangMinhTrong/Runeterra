@@ -53,4 +53,10 @@ public class ProductService : IProductService
         }
         return true;
     }
+
+    public async Task<Entity.Product> GetById(int id)
+    {
+        var product = await _context.Products.FirstOrDefaultAsync(x => x.Id == id);
+        return product;
+    }
 }
