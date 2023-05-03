@@ -20,6 +20,12 @@ public class ProductController : ControllerBase
         var products = await _productService.Get();
         return products;
     }
+    [HttpGet("get-by-store")]
+    public async Task<List<Entity.Product>> GetByStore()
+    {
+        var products = await _productService.GetByStore();
+        return products;
+    }
     [HttpGet("{id}")]
     public async Task<Entity.Product> GetById(int id)
     {

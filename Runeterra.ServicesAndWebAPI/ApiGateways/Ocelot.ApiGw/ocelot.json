@@ -25,6 +25,18 @@
       "UpstreamHttpMethod": [ "POST", "GET" ]
     },
     {
+      "DownstreamPathTemplate": "/api/product/get-by-store",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 6001
+        }
+      ],
+      "UpstreamPathTemplate": "/gateway/get-by-store",
+      "UpstreamHttpMethod": [ "POST", "GET" ]
+    },
+    {
       "DownstreamPathTemplate": "/api/product/id/{id}",
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
@@ -58,6 +70,30 @@
         }
       ],
       "UpstreamPathTemplate": "/gateway/checkout-paypal",
+      "UpstreamHttpMethod": [ "POST", "GET" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/Order/get-orders/",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 6001
+        }
+      ],
+      "UpstreamPathTemplate": "/gateway/get-orders/",
+      "UpstreamHttpMethod": [ "POST", "GET" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/Order/{orderId}/products",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 6001
+        }
+      ],
+      "UpstreamPathTemplate": "/gateway/{orderId}/products",
       "UpstreamHttpMethod": [ "POST", "GET" ]
     }
   ]

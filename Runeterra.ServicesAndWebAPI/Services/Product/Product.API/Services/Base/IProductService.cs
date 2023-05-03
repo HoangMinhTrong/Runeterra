@@ -5,6 +5,7 @@ namespace Product.API.Services.Base;
 public interface IProductService
 {
     public Task<List<Entity.Product>> Get();
+    public Task<List<Entity.Product>> GetByStore();
     public Task<bool> Create(CreateProductRequest productDto);
     public Task<Entity.Product> GetById(int id);
 }

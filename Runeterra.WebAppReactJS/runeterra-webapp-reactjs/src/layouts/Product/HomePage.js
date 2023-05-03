@@ -34,7 +34,7 @@ export default function HomePage({prod}){
                     </div>
                 </div>
             </section>
-            <FooterSmall absolute />
+            <FooterSmall  />
         </>
 
     );

@@ -49,14 +49,16 @@ public class OrderController : ControllerBase
     {
         return Ok(id);
     }
-    [HttpGet("{id}")]
-    public IActionResult GetById(int id)
+    [HttpGet("get-orders")]
+    public async Task<IActionResult> GetOrders()
     {
-        return Ok(id);
+        var orders = await _orderService.GetOrders();
+        return Ok(orders);
     }
-    [HttpGet()]
-    public IActionResult GetAll()
+    [HttpGet("{orderId}/products")]
+    public async Task<ActionResult<IEnumerable<Entity.OrderDetail>>> GetProductsByOrderId(int orderId)
     {
-        return Ok();
+        var products = await _orderService.GetProductsByOrderId(orderId);
+        return Ok(products);
     }
 }

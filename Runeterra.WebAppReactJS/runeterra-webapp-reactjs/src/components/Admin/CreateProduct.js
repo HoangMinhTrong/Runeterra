@@ -17,6 +17,7 @@ export default function CreateProduct(){
     const [productTypeId, setProductTypeId] = useState("")
     const [storeId, setStoreId] = useState("")
 
+
     const addProduct = async (e) => {
         e.preventDefault();
         try {

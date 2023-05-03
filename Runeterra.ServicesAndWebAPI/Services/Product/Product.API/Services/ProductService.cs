@@ -30,6 +30,16 @@ public class ProductService : IProductService
         return products;
     }
 
+    public async Task<List<Entity.Product>> GetByStore()
+    {
+        var userIdClaim = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
+        var products = await _context.Products
+            .Include(x => x.ProductType)
+            .Include(x => x.Store).Where(x=>x.Store.UserId == userIdClaim)
+            .ToListAsync();
+        return products;
+    }
+
     public async Task<bool> Create(CreateProductRequest productDto)
     {
         var userIdClaim = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;

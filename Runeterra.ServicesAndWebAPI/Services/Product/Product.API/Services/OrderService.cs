@@ -4,7 +4,6 @@ using Product.API.Data;
 using Product.API.Dtos.Order.Requests;
 using Product.API.Entity;
 using Product.API.Services.Base;
-
 namespace Product.API.Services;
 
 public class OrderService : IOrderService
@@ -36,16 +35,21 @@ public class OrderService : IOrderService
             await _context.AddAsync(confirmCheckout);
             await _context.SaveChangesAsync();
             //
+            var order = await _context.Orders
+                .SingleOrDefaultAsync(x => x.userId == userIdClaim && x.orderTypeId == confirmCheckoutRequest.OrderTypeId && x.DeliveryId == confirmCheckout.Id);
+            if(order == null) 
+            { 
+                order = new Order()
+               {
+                   userId = userIdClaim,
+                   createAt = DateTime.Now,
+                   orderTypeId = confirmCheckoutRequest.OrderTypeId,
+                   DeliveryId = confirmCheckout.Id
+               };
+               await _context.Orders.AddAsync(order);
+               await _context.SaveChangesAsync();
+            }
            
-            _order = new Order()
-                {
-                    userId = userIdClaim,
-                    createAt = DateTime.Now,
-                    orderTypeId = confirmCheckoutRequest.OrderTypeId,
-                    DeliveryId = confirmCheckout.Id
-                };
-                await _context.Orders.AddAsync(_order);
-                await _context.SaveChangesAsync();
         
             foreach (var item in cart)
             {
@@ -54,7 +58,7 @@ public class OrderService : IOrderService
                     productId = item.productId,
                     quantity = item.Quantity,
                     unitPrice = item.Product.Price,
-                    orderId = _order.id
+                    orderId = order.id
                     
                 };
                 orderDetails.Add(orderDetail);
@@ -67,5 +71,39 @@ public class OrderService : IOrderService
             await _context.SaveChangesAsync();
             return true;
     }
-    
+
+    public async Task<IEnumerable<Order>> GetOrders()
+    {
+        var userIdClaim = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
+        var orders = await _context.Orders
+            .Include(x => x.OrderDetails)
+            .ThenInclude(x => x.Product)
+            .ThenInclude(x => x.Store).Where(x => x.userId == userIdClaim).ToListAsync(); 
+        return orders;
+    }
+
+    public async Task<IEnumerable<Order>> GetOrdersByStore()
+    {
+        var userIdClaim = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
+        var orders = await _context.Orders
+            .Include(x => x.OrderDetails)
+            .ThenInclude(x => x.Product)
+            .ThenInclude(x => x.Store).Where(x => x.userId == userIdClaim)
+            .ToListAsync(); 
+        return orders;
+    }
+
+    public async Task<IEnumerable<Entity.OrderDetail>> GetProductsByOrderId(int orderId)
+    {
+        var orderDetails = await _context.OrderDetails
+            .Where(od => od.orderId == orderId)
+            .Select(od => new { od.Product, od.quantity })
+            .ToListAsync();
+
+        return orderDetails.Select(od => new Entity.OrderDetail
+        {
+            Product = od.Product,
+            quantity = od.quantity
+        });
+    }
 }

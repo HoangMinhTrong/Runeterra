@@ -22,8 +22,7 @@ public class PaypalService : IPaypalService
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly ICartService _cartService;
     private readonly IConfiguration _config;
-    private static Order _order;
-    
+
     public PaypalService(IOptions<PaypalSettings> paypalSettings, IHttpContextAccessor httpContextAccessor, ApplicationDbContext context, ICartService cartService, IConfiguration config)
     {
         _paypalSettings = paypalSettings;
@@ -138,21 +137,26 @@ public class PaypalService : IPaypalService
             await _context.SaveChangesAsync();
             
             var orderDetails = new List<OrderDetail>();
+            var orders = new Order();
+            var orderCreated = false;
             foreach (var item in result.Transactions)
             {
                 foreach (var skuItem in item.ItemList.Items)
                 {
-                    _order = new Order()
+                    if (!orderCreated)
                     {
-                        userId = skuItem.Sku,
-                        createAt = DateTime.Now,
-                        orderTypeId = 1001,
-                        DeliveryId = confirmCheckout.Id,
-                        total = double.Parse(item.Amount.Total) 
-                    };
-                    await _context.Orders.AddAsync(_order);
-                    await _context.SaveChangesAsync();
-                    
+                        orders = new Order()
+                        {
+                            userId = skuItem.Sku,
+                            createAt = DateTime.Now,
+                            orderTypeId = 1001,
+                            DeliveryId = confirmCheckout.Id,
+                            total = double.Parse(item.Amount.Total) 
+                        };
+                        await _context.Orders.AddAsync(orders);
+                        await _context.SaveChangesAsync();
+                        orderCreated = true;
+                    }
                     var product = products.FirstOrDefault(x => x.Id.ToString() == skuItem.Description);
                     if (product == null)
                     {
@@ -164,7 +168,7 @@ public class PaypalService : IPaypalService
                         productId = product.Id,
                         quantity = int.Parse(skuItem.Quantity),
                         unitPrice = product.Price,
-                        orderId = _order.id
+                        orderId = orders.id
                     };
                     orderDetails.Add(orderDetail);
                 }
